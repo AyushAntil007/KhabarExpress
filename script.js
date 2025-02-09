@@ -9,9 +9,8 @@ const options = [
   "technology",
 ];
 
-// Directly include the API key in the script
-const API_KEY = 'd87ec6552386412aa82ac5ebcfe10294'; // Replace with your actual API key
-console.log('API_KEY:', API_KEY); // Debugging line to check API key
+// Your NewsAPI Key
+const API_KEY = 'd87ec6552386412aa82ac5ebcfe10294'; // Replace with your API key
 
 let requestURL;
 
@@ -70,7 +69,6 @@ const generateUI = (articles) => {
 const getNews = async () => {
   container.innerHTML = "";
   try {
-    console.log('Request URL:', requestURL); // Debugging line to check request URL
     let response = await fetch(requestURL);
     if (!response.ok) {
       alert("Data unavailable at the moment. Please try again later");
@@ -79,7 +77,6 @@ const getNews = async () => {
     let data = await response.json();
     generateUI(data.articles);
   } catch (error) {
-    console.error('Error fetching news:', error); // Debugging line to log errors
     alert("An error occurred while fetching the news. Please try again later.");
   }
 };
