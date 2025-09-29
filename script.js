@@ -13,7 +13,7 @@ const options = [
 ];
 
 // Your NewsAPI Key
-const API_KEY = 'd87ec6552386412aa82ac5ebcfe10294'; // Replace with your API key
+const API_KEY = 'd87ec6552386412aa82ac5ebcfe10294'; // Use direct assignment, not process.env
 
 let requestURL;
 
