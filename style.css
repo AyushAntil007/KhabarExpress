@@ -162,6 +162,32 @@ img {
   border-radius: 5px;
 }
 
+.donation-btn-container {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0 8px 0;
+}
+
+.donation-btn {
+  background: linear-gradient(90deg, #ff512f 0%, #dd2476 100%);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 32px;
+  font-size: 1.1em;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(221,36,118,0.15);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+  outline: none;
+}
+
+.donation-btn:hover {
+  background: linear-gradient(90deg, #ff512f 0%, #f09819 100%);
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(255,81,47,0.18);
+}
+
 /* Footer Styling */
 .footer.night-mode {
   background-color: #1e1e1e;

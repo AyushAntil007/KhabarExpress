@@ -1,5 +1,7 @@
 const container = document.querySelector(".container");
 const optionsContainer = document.querySelector(".options-container");
+
+// Add the "disaster" category
 const options = [
   "general",
   "entertainment",
@@ -7,6 +9,7 @@ const options = [
   "science",
   "sports",
   "technology",
+  "disaster"
 ];
 
 // Your NewsAPI Key
@@ -63,6 +66,60 @@ const generateUI = (articles) => {
 
     container.appendChild(card);
   }
+
+  // Remove previous donation button if any
+  const oldDonationBtn = document.querySelector('.donation-btn-container');
+  if (oldDonationBtn) oldDonationBtn.remove();
+
+  // If disaster category, add donation button
+  if (requestURL.includes('disaster')) {
+    const donationDiv = document.createElement('div');
+    donationDiv.className = 'donation-btn-container';
+    donationDiv.innerHTML = `
+      <input type="number" min="1" placeholder="Enter amount (INR)" class="donation-amount-input" style="margin-right:10px; padding:8px; border-radius:20px; border:1px solid #ddd; width:140px;">
+      <button class="donation-btn" id="razorpay-donate-btn">
+        💖 Donate for Disaster Relief
+      </button>
+    `;
+    container.parentNode.insertBefore(donationDiv, container);
+
+    document.getElementById('razorpay-donate-btn').onclick = function() {
+      const amountInput = document.querySelector('.donation-amount-input');
+      let amount = parseInt(amountInput.value, 10);
+      if (isNaN(amount) || amount < 1) {
+        alert("Please enter a valid amount (minimum ₹1).");
+        return;
+      }
+      const options = {
+        key: "rzp_test_RMzsXbFFqrbmtY", // Replace with your Razorpay key
+        amount: amount * 100, // Amount in paise
+        currency: "INR",
+        name: "Disaster Relief Donation",
+        description: "Support disaster relief efforts",
+        image: "https://yourdomain.com/logo.png", // Optional logo
+        handler: function (response){
+          alert("Thank you for your donation! Payment ID: " + response.razorpay_payment_id);
+        },
+        prefill: {
+          name: "",
+          email: ""
+        },
+        theme: {
+          color: "#dd2476"
+        }
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    };
+
+    // Load Razorpay script if not already loaded
+    if (!document.getElementById('razorpay-script')) {
+      const script = document.createElement('script');
+      script.id = 'razorpay-script';
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      document.body.appendChild(script);
+    }
+  }
 };
 
 // News API Call
@@ -88,7 +145,13 @@ const selectCategory = (e, category) => {
     element.classList.remove("active");
   });
 
-  requestURL = `https://newsapi.org/v2/everything?q=india%20${category}&language=en&apiKey=${API_KEY}`;
+  // Handle disaster category separately if needed
+  if(category === "disaster"){
+    requestURL = `https://newsapi.org/v2/everything?q=disaster%20india&language=en&apiKey=${API_KEY}`;
+  } else {
+    requestURL = `https://newsapi.org/v2/everything?q=india%20${category}&language=en&apiKey=${API_KEY}`;
+  }
+
   e.target.classList.add("active");
   getNews();
 };
