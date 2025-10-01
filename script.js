@@ -17,13 +17,24 @@ const API_KEY = 'd87ec6552386412aa82ac5ebcfe10294'; // Use direct assignment, no
 
 let requestURL;
 
+let currentPage = 1;
+let isLoading = false;
+let lastCategory = "general";
+
 // Create cards from data
-const generateUI = (articles) => {
+const generateUI = (articles, append = false) => {
   console.log('Generating UI with articles:', articles);
   if (!articles || articles.length === 0) {
-    console.log('No articles found');
-    container.innerHTML = "<p>No articles available at the moment.</p>";
+    if (!append) {
+      container.innerHTML = "<p>No articles available at the moment.</p>";
+    }
     return;
+  }
+
+  // Remove previous donation button if any (only if not appending)
+  if (!append) {
+    const oldDonationBtn = document.querySelector('.donation-btn-container');
+    if (oldDonationBtn) oldDonationBtn.remove();
   }
 
   for (let item of articles) {
@@ -31,12 +42,10 @@ const generateUI = (articles) => {
 
     let card = document.createElement("div");
     card.classList.add("news-card");
-
     let imageUrl = item.urlToImage || "https://via.placeholder.com/150";
-
     card.innerHTML = `
       <div class="news-image-container">
-        <img src="${imageUrl}" alt="News Image" />
+        <img src="${imageUrl}" alt="News Image" loading="lazy" />
       </div>
       <div class="news-content">
         <div class="news-title">
@@ -63,16 +72,11 @@ const generateUI = (articles) => {
         ripple.remove();
       });
     });
-
     container.appendChild(card);
   }
 
-  // Remove previous donation button if any
-  const oldDonationBtn = document.querySelector('.donation-btn-container');
-  if (oldDonationBtn) oldDonationBtn.remove();
-
-  // If disaster category, add donation button
-  if (requestURL.includes('disaster')) {
+  // If disaster category, add donation button (only if not appending)
+  if (!append && requestURL.includes('disaster')) {
     const donationDiv = document.createElement('div');
     donationDiv.className = 'donation-btn-container';
     donationDiv.innerHTML = `
@@ -82,7 +86,6 @@ const generateUI = (articles) => {
       </button>
     `;
     container.parentNode.insertBefore(donationDiv, container);
-
     document.getElementById('razorpay-donate-btn').onclick = function() {
       const amountInput = document.querySelector('.donation-amount-input');
       let amount = parseInt(amountInput.value, 10);
@@ -111,7 +114,6 @@ const generateUI = (articles) => {
       const rzp = new window.Razorpay(options);
       rzp.open();
     };
-
     // Load Razorpay script if not already loaded
     if (!document.getElementById('razorpay-script')) {
       const script = document.createElement('script');
@@ -122,20 +124,29 @@ const generateUI = (articles) => {
   }
 };
 
-// News API Call
-const getNews = async () => {
-  container.innerHTML = "";
+// Modify getNews to accept page and append articles if page > 1
+const getNews = async (page = 1, append = false) => {
+  if (isLoading) return;
+  isLoading = true;
+  if (!append) container.innerHTML = "";
   try {
-    let response = await fetch(requestURL);
+    let url = requestURL + `&page=${page}`;
+    let response = await fetch(url);
     if (!response.ok) {
       alert("Data unavailable at the moment. Please try again later");
+      isLoading = false;
       return false;
     }
     let data = await response.json();
-    generateUI(data.articles);
+    if (append) {
+      generateUI(data.articles, true);
+    } else {
+      generateUI(data.articles);
+    }
   } catch (error) {
     alert("An error occurred while fetching the news. Please try again later.");
   }
+  isLoading = false;
 };
 
 // Category Selection
@@ -153,7 +164,9 @@ const selectCategory = (e, category) => {
   }
 
   e.target.classList.add("active");
-  getNews();
+  lastCategory = category;
+  currentPage = 1;
+  getNews(currentPage);
 };
 
 // Options Buttons
@@ -165,14 +178,27 @@ const createOptions = () => {
 
 const init = () => {
   optionsContainer.innerHTML = "";
-  getNews();
+  getNews(currentPage);
   createOptions();
 };
 
 window.onload = () => {
   requestURL = `https://newsapi.org/v2/everything?q=india&language=en&apiKey=${API_KEY}`;
+  lastCategory = "general";
+  currentPage = 1;
   init();
 };
+
+// Infinite scroll event
+window.addEventListener('scroll', () => {
+  if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+    // Near bottom
+    if (!isLoading) {
+      currentPage += 1;
+      getNews(currentPage, true);
+    }
+  }
+});
 
 // Toggle Night Mode
 const toggleNightMode = () => {
